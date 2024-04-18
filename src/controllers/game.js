@@ -25,6 +25,7 @@ export const INSERT_GAME = async (req, res) => {
   try {
     const game = new GameModel({
       id: uuidv4(),
+      userId: req.body.userId,
       title: req.body.title,
       releaseYear: req.body.releaseYear,
       condition: req.body.condition,
@@ -37,6 +38,40 @@ export const INSERT_GAME = async (req, res) => {
     return res
       .status(200)
       .json({ game: response, message: "Game was added successfully" });
+  } catch (err) {
+    console.log(err);
+  }
+};
+
+export const GET_ALL_USER_GAMES = async (req, res) => {
+  try {
+    const games = await GameModel.find({ userId: req.body.userId });
+
+    if (!games.length) {
+      return res
+        .status(404)
+        .json({ message: "this user does not have any game" });
+    }
+
+    return res.status(200).json({ games: games });
+  } catch (err) {
+    console.log(err);
+  }
+};
+
+export const DELETE_GAME_BY_ID = async (req, res) => {
+  try {
+    const game = await GameModel.findOne({ id: req.params.id });
+
+    if (game.userId !== req.body.userId) {
+      return res
+        .status(401)
+        .json({ message: "this game does not belong to you" });
+    }
+
+    const response = await GameModel.deleteOne({ id: req.params.id });
+
+    return res.status(200).json({ response: response });
   } catch (err) {
     console.log(err);
   }
